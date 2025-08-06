@@ -10,6 +10,10 @@ class ApiService {
     Map<String, dynamic>? params,
   }) async {
     var response = await _dio.get(endpoint, queryParameters: params);
-    return response.data;
+    if (response.data is Map<String, dynamic>) {
+      return response.data;
+    } else {
+      throw {"data": response.data};
+    }
   }
 }

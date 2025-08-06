@@ -4,7 +4,7 @@ import 'package:dio/dio.dart';
 class ServerFailure extends Failure {
   ServerFailure({required String errMessage}) : super(errMessage);
 
-  factory ServerFailure.fromException(Exception e) {
+  factory ServerFailure.fromDioException(Exception e) {
     if (e is DioException) {
       switch (e.type) {
         case DioExceptionType.cancel:
@@ -77,10 +77,9 @@ class ServerFailure extends Failure {
           errorMessage = 'Payment required, please try again later';
           break;
         case 403:
-          errorMessage =
-              errorMessage.isNotEmpty
-                  ? errorMessage
-                  : "An error occurred while processing your request";
+          errorMessage = errorMessage.isNotEmpty
+              ? errorMessage
+              : "An error occurred while processing your request";
           break;
         default:
           break;

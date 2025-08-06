@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'core/di/service_locator.dart';
+import 'core/functions/setup_hive_db.dart';
 import 'core/routing/routes.dart';
 import 'core/routing/app_router.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  setupServiceLocator();
+  await Future.wait([setupHiveDB(), ScreenUtil.ensureScreenSize()]);
   runApp(const FactCat());
 }
 

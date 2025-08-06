@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:fact_cat/core/routing/routes.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../features/main/presentation/views/main_view/main_view.dart';
 
 class AppRouter {
   static Route? onGenerateRoute(RouteSettings settings) {
@@ -6,6 +9,9 @@ class AppRouter {
     final dynamic args = settings.arguments;
 
     switch (settings.name) {
+      case AppRoutes.main:
+        return transitionPage(ProviderScope(child: const MainView()));
+
       default:
         return MaterialPageRoute(
           builder: (_) => Scaffold(
