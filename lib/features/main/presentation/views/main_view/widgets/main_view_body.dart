@@ -7,7 +7,6 @@ import '../../../../domain/usecases/get_random_fact_usecase.dart';
 import '../../../controllers/main_controller/main_notifier.dart';
 import '../../../controllers/main_controller/main_state.dart';
 
-// UseCase Providers
 final getRandomFactUseCaseProvider = Provider<GetRandomFactUseCase>((ref) {
   return getIt<GetRandomFactUseCase>();
 });
@@ -24,38 +23,63 @@ final mainNotifierProvider =
       );
     });
 
-class MainViewBody extends ConsumerWidget {
+class MainViewBody extends ConsumerStatefulWidget {
   const MainViewBody({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(mainNotifierProvider);
-    final notifier = ref.read(mainNotifierProvider.notifier);
+  ConsumerState<MainViewBody> createState() => _MainViewBodyState();
+}
 
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          _buildImageStateContent(state.imageState),
-          const SizedBox(height: 20),
-          ElevatedButton(
-            onPressed: () async {
-              await Future.wait([
-                notifier.fetchRandomFact(),
-                notifier.fetchCatImage(),
-              ]);
-            },
-            child: const Text(
-              'Get Random Fact',
-              style: TextStyle(fontSize: 18),
+class _MainViewBodyState extends ConsumerState<MainViewBody> {
+  bool _isFirstLoadDone = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadInitialContent();
+  }
+
+  Future<void> _loadInitialContent() async {
+    Future.microtask(() async {
+      final notifier = ref.read(mainNotifierProvider.notifier);
+      await Future.wait([notifier.fetchRandomFact(), notifier.fetchCatImage()]);
+      if (mounted) {
+        setState(() => _isFirstLoadDone = true);
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final state = ref.watch(mainNotifierProvider);
+
+    return _isFirstLoadDone
+        ? Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                _buildImageStateContent(state.imageState),
+                const SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: () async {
+                    final notifier = ref.read(mainNotifierProvider.notifier);
+                    await Future.wait([
+                      notifier.fetchRandomFact(),
+                      notifier.fetchCatImage(),
+                    ]);
+                  },
+                  child: const Text(
+                    'Another Fact!',
+                    style: TextStyle(fontSize: 18),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Center(child: _buildFactStateContent(state.factState)),
+              ],
             ),
-          ),
-          const SizedBox(height: 20),
-          Center(child: _buildFactStateContent(state.factState)),
-        ],
-      ),
-    );
+          )
+        : const Center(child: CircularProgressIndicator());
   }
 
   Widget _buildFactStateContent(FactState state) {
@@ -64,29 +88,14 @@ class MainViewBody extends ConsumerWidget {
       GetRandomFactFailure(:final message) => Text(
         'Error: $message',
         textAlign: TextAlign.center,
-        style: TextStyle(
-          fontSize: 18,
-          fontWeight: FontWeight.w600,
-          color: Colors.black,
-        ),
+        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
       ),
       GetRandomFactSuccess(:final fact) => Text(
         fact.fact,
         textAlign: TextAlign.center,
-        style: TextStyle(
-          fontSize: 18,
-          fontWeight: FontWeight.w600,
-          color: Colors.black,
-        ),
+        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
       ),
-      _ => const Text(
-        'Tap the button to get a random fact',
-        style: TextStyle(
-          fontSize: 18,
-          fontWeight: FontWeight.w600,
-          color: Colors.black,
-        ),
-      ),
+      _ => const SizedBox.shrink(),
     };
   }
 
@@ -101,11 +110,7 @@ class MainViewBody extends ConsumerWidget {
       GetCatImageFailure(:final message) => Text(
         'Error: $message',
         textAlign: TextAlign.center,
-        style: TextStyle(
-          fontSize: 18,
-          fontWeight: FontWeight.w600,
-          color: Colors.black,
-        ),
+        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
       ),
       GetCatImageSuccess(:final image) =>
         image.startsWith('http')
@@ -116,14 +121,7 @@ class MainViewBody extends ConsumerWidget {
                 width: 500,
                 fit: BoxFit.cover,
               ),
-      _ => const Text(
-        'Tap the button to get a random cat image',
-        style: TextStyle(
-          fontSize: 18,
-          fontWeight: FontWeight.w600,
-          color: Colors.black,
-        ),
-      ),
+      _ => const SizedBox.shrink(),
     };
   }
 }

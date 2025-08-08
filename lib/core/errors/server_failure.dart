@@ -10,10 +10,7 @@ class ServerFailure extends Failure {
         case DioExceptionType.cancel:
           return ServerFailure(errMessage: "Request to server was cancelled");
         case DioExceptionType.connectionError:
-          return ServerFailure(
-            errMessage:
-                "Connection to server failed due to internet connection",
-          );
+          return ServerFailure(errMessage: "Check your Internet Connection");
         case DioExceptionType.connectionTimeout:
           return ServerFailure(errMessage: "Connection timeout with server");
         case DioExceptionType.receiveTimeout:
