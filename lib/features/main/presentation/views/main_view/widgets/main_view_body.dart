@@ -1,7 +1,9 @@
 import 'dart:io';
+import 'package:fact_cat/core/routing/navigation_extension.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../../core/di/service_locator.dart';
+import '../../../../../../core/routing/routes.dart';
 import '../../../../domain/usecases/get_cat_image_use_case.dart';
 import '../../../../domain/usecases/get_random_fact_usecase.dart';
 import '../../../controllers/main_controller/main_notifier.dart';
@@ -42,7 +44,7 @@ class _MainViewBodyState extends ConsumerState<MainViewBody> {
   Future<void> _loadInitialContent() async {
     Future.microtask(() async {
       final notifier = ref.read(mainNotifierProvider.notifier);
-      await Future.wait([notifier.fetchRandomFact(), notifier.fetchCatImage()]);
+      await notifier.fetchCombinedFact();
       if (mounted) {
         setState(() => _isFirstLoadDone = true);
       }
@@ -56,27 +58,44 @@ class _MainViewBodyState extends ConsumerState<MainViewBody> {
     return _isFirstLoadDone
         ? Padding(
             padding: const EdgeInsets.all(16),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _buildImageStateContent(state.imageState),
-                const SizedBox(height: 20),
-                ElevatedButton(
-                  onPressed: () async {
-                    final notifier = ref.read(mainNotifierProvider.notifier);
-                    await Future.wait([
-                      notifier.fetchRandomFact(),
-                      notifier.fetchCatImage(),
-                    ]);
-                  },
-                  child: const Text(
-                    'Another Fact!',
-                    style: TextStyle(fontSize: 18),
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  _buildImageStateContent(state.imageState),
+                  const SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: () async {
+                      final notifier = ref.read(mainNotifierProvider.notifier);
+                      await notifier.fetchCombinedFact();
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.lightBlue,
+                    ),
+                    child: const Text(
+                      'Another Fact!',
+                      style: TextStyle(fontSize: 18, color: Colors.white),
+                    ),
                   ),
-                ),
-                const SizedBox(height: 20),
-                Center(child: _buildFactStateContent(state.factState)),
-              ],
+                  const SizedBox(height: 20),
+                  Center(child: _buildFactStateContent(state.factState)),
+                  const SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: () async {
+                      await context.pushNamed(
+                        AppRoutes.factsHistory,
+                        arguments: state.factHistory,
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.lightBlue,
+                    ),
+                    child: const Text(
+                      'Facts History',
+                      style: TextStyle(fontSize: 18, color: Colors.white),
+                    ),
+                  ),
+                ],
+              ),
             ),
           )
         : const Center(child: CircularProgressIndicator());
