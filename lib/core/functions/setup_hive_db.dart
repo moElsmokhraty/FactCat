@@ -6,4 +6,5 @@ Future<void> setupHiveDB() async {
   await Hive.initFlutter();
   Hive.registerAdapter(FactEntityAdapter());
   await Hive.openBox<FactEntity>(kFactsBox);
+  await Hive.openBox<String>(kCatImageBox);
 }

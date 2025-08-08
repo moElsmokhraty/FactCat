@@ -1,5 +1,6 @@
 import '../../../../../core/api/api_endpoints.dart';
 import '../../../../../core/api/api_service.dart';
+import '../../../../../core/functions/cache_cat_image.dart';
 import '../../../../../core/functions/cache_random_fact.dart';
 import '../../../domain/entities/fact_entity.dart';
 import '../../models/fact_model.dart';
@@ -17,5 +18,13 @@ class MainRemoteDataSourceImpl implements MainRemoteDataSource {
     final entity = model.toEntity();
     await cacheRandomFact(entity);
     return entity;
+  }
+
+  @override
+  Future<String> fetchCatImage() async {
+    final data = await _apiService.get(endpoint: ApiEndpoints.catImage);
+    String image = (data['data'] as List).first['url'] as String;
+    await cacheCatImage(image);
+    return image;
   }
 }

@@ -1,9 +1,9 @@
+import 'dart:io';
 import 'dart:math';
 import 'package:hive/hive.dart';
-
+import 'main_local_data_source.dart';
 import '../../../../../core/utils/constants.dart';
 import '../../../domain/entities/fact_entity.dart';
-import 'main_local_data_source.dart';
 
 class MainLocalDataSourceImpl implements MainLocalDataSource {
   MainLocalDataSourceImpl();
@@ -16,5 +16,26 @@ class MainLocalDataSourceImpl implements MainLocalDataSource {
 
     final randomFact = allFacts[Random().nextInt(allFacts.length)];
     return randomFact;
+  }
+
+  @override
+  String? getCatImage() {
+    try {
+      final box = Hive.box<String>(kCatImageBox);
+      if (box.isEmpty) return null;
+
+      final indices = List.generate(box.length, (i) => i)..shuffle();
+
+      for (final index in indices) {
+        final path = box.getAt(index);
+        if (path != null && File(path).existsSync()) {
+          return path;
+        }
+      }
+
+      return null;
+    } catch (_) {
+      return null;
+    }
   }
 }

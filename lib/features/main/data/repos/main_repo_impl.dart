@@ -32,4 +32,24 @@ class MainRepoImpl implements MainRepo {
       return left(ServerFailure(errMessage: e.toString()));
     }
   }
+
+  @override
+  Future<Either<Failure, String>> getCatImage() async {
+    try {
+      final remoteImage = await remoteDataSource.fetchCatImage();
+      return right(remoteImage);
+    } on DioException catch (e) {
+      final localImage = localDataSource.getCatImage();
+      if (localImage != null) {
+        return right(localImage);
+      }
+      return left(ServerFailure.fromDioException(e));
+    } catch (e) {
+      final localImage = localDataSource.getCatImage();
+      if (localImage != null) {
+        return right(localImage);
+      }
+      return left(ServerFailure(errMessage: e.toString()));
+    }
+  }
 }

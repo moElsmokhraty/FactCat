@@ -6,6 +6,16 @@ class MainView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(body: SafeArea(child: MainViewBody()));
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text(
+          'Random Fact',
+          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+        ),
+        centerTitle: true,
+        leading: SizedBox.shrink(),
+      ),
+      body: SafeArea(child: MainViewBody()),
+    );
   }
 }

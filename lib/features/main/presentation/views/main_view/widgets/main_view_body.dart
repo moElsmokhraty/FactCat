@@ -1,47 +1,64 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../../core/di/service_locator.dart';
+import '../../../../domain/usecases/get_cat_image_use_case.dart';
 import '../../../../domain/usecases/get_random_fact_usecase.dart';
 import '../../../controllers/main_controller/main_notifier.dart';
+import '../../../controllers/main_controller/main_state.dart';
 
+// UseCase Providers
 final getRandomFactUseCaseProvider = Provider<GetRandomFactUseCase>((ref) {
   return getIt<GetRandomFactUseCase>();
 });
 
-final mainProvider = StateNotifierProvider.autoDispose<MainNotifier, MainState>(
-  (ref) {
-    return MainNotifier(ref.watch(getRandomFactUseCaseProvider));
-  },
-);
+final getCatImageUseCaseProvider = Provider<GetCatImageUseCase>((ref) {
+  return getIt<GetCatImageUseCase>();
+});
+
+final mainNotifierProvider =
+    StateNotifierProvider.autoDispose<MainNotifier, MainState>((ref) {
+      return MainNotifier(
+        ref.watch(getRandomFactUseCaseProvider),
+        ref.watch(getCatImageUseCaseProvider),
+      );
+    });
 
 class MainViewBody extends ConsumerWidget {
   const MainViewBody({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(mainProvider);
-    final notifier = ref.read(mainProvider.notifier);
+    final state = ref.watch(mainNotifierProvider);
+    final notifier = ref.read(mainNotifierProvider.notifier);
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('Random Fact'), centerTitle: true),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            ElevatedButton(
-              onPressed: notifier.fetchRandomFact,
-              child: const Text('Get Random Fact'),
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          _buildImageStateContent(state.imageState),
+          const SizedBox(height: 20),
+          ElevatedButton(
+            onPressed: () async {
+              await Future.wait([
+                notifier.fetchRandomFact(),
+                notifier.fetchCatImage(),
+              ]);
+            },
+            child: const Text(
+              'Get Random Fact',
+              style: TextStyle(fontSize: 18),
             ),
-            const SizedBox(height: 20),
-            Center(child: _buildStateContent(state)),
-          ],
-        ),
+          ),
+          const SizedBox(height: 20),
+          Center(child: _buildFactStateContent(state.factState)),
+        ],
       ),
     );
   }
 
-  Widget _buildStateContent(MainState state) {
+  Widget _buildFactStateContent(FactState state) {
     return switch (state) {
       GetRandomFactLoading() => const CircularProgressIndicator(),
       GetRandomFactFailure(:final message) => Text(
@@ -56,7 +73,7 @@ class MainViewBody extends ConsumerWidget {
       GetRandomFactSuccess(:final fact) => Text(
         fact.fact,
         textAlign: TextAlign.center,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 18,
           fontWeight: FontWeight.w600,
           color: Colors.black,
@@ -64,7 +81,43 @@ class MainViewBody extends ConsumerWidget {
       ),
       _ => const Text(
         'Tap the button to get a random fact',
+        style: TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.w600,
+          color: Colors.black,
+        ),
+      ),
+    };
+  }
+
+  Widget _buildImageStateContent(ImageState state) {
+    return switch (state) {
+      GetCatImageLoading() => Container(
+        alignment: Alignment.center,
+        height: 250,
+        width: 500,
+        child: const CircularProgressIndicator(),
+      ),
+      GetCatImageFailure(:final message) => Text(
+        'Error: $message',
         textAlign: TextAlign.center,
+        style: TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.w600,
+          color: Colors.black,
+        ),
+      ),
+      GetCatImageSuccess(:final image) =>
+        image.startsWith('http')
+            ? Image.network(image, height: 250, width: 500, fit: BoxFit.cover)
+            : Image.file(
+                File(image),
+                height: 250,
+                width: 500,
+                fit: BoxFit.cover,
+              ),
+      _ => const Text(
+        'Tap the button to get a random cat image',
         style: TextStyle(
           fontSize: 18,
           fontWeight: FontWeight.w600,

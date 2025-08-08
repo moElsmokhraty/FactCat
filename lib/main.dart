@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'core/di/service_locator.dart';
 import 'core/functions/setup_hive_db.dart';
@@ -8,7 +9,11 @@ import 'core/routing/app_router.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   setupServiceLocator();
-  await Future.wait([setupHiveDB(), ScreenUtil.ensureScreenSize()]);
+  await Future.wait([
+    setupHiveDB(),
+    ScreenUtil.ensureScreenSize(),
+    SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]),
+  ]);
   runApp(const FactCat());
 }
 

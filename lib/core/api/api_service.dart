@@ -13,7 +13,7 @@ class ApiService {
     if (response.data is Map<String, dynamic>) {
       return response.data;
     } else {
-      throw {"data": response.data};
+      return {"data": response.data};
     }
   }
 }
