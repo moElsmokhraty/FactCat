@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:fact_cat/core/routing/routes.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../features/facts_history/presentation/views/facts_history_view/facts_history_view.dart';
 import '../../features/main/presentation/views/main_view/main_view.dart';
+import '../models/fact_parameter.dart';
 
 class AppRouter {
   static Route? onGenerateRoute(RouteSettings settings) {
@@ -11,6 +13,11 @@ class AppRouter {
     switch (settings.name) {
       case AppRoutes.main:
         return transitionPage(ProviderScope(child: const MainView()));
+      case AppRoutes.factsHistory:
+        final factsHistory = args as List<FactParameter>;
+        return transitionPage(
+          ProviderScope(child: FactsHistoryView(factsHistory: factsHistory)),
+        );
 
       default:
         return MaterialPageRoute(
